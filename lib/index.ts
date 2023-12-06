@@ -1,4 +1,36 @@
-export default function h() {}
+export default function h<TElement extends (props: any) => JSX.Element>(
+  component: TElement,
+  props: Omit<Parameters<TElement>[0], "children"> | null,
+  ...children: (JSX.Element | null)[]
+): JSX.Element;
+
+export default function h<TElement extends keyof JSX.IntrinsicElements>(
+  component: TElement,
+  props: Omit<JSX.IntrinsicElements[TElement], "children"> | null,
+  ...children: (JSX.Element | null)[]
+): JSX.Element;
+
+export default function h(
+  component: keyof JSX.IntrinsicElements | ((props: any) => JSX.Element),
+  props: Record<string | number | symbol, any> | null,
+  ...children: (JSX.Element | null)[]
+): JSX.Element {
+  children = children.filter(Boolean);
+
+  if (typeof component === "function") {
+    if (props) props.children = children;
+    return component(props);
+  }
+
+  let attributes = "";
+  if (props) {
+    for (const [name, value] of Object.entries(props)) {
+      attributes += ` ${name}="${value}"`;
+    }
+  }
+
+  return `<${component}${attributes}>${children.join("")}</${component}>`;
+}
 
 declare global {
   /**
